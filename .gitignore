@@ -1,0 +1,19 @@
+# IDE and OS Files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+
+# Temporary and Local Configurations
+.env
+.agents/
+.gemini/
+

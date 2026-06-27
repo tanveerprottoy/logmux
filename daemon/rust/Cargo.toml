@@ -1,0 +1,16 @@
+[package]
+name = "logmux-daemon"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# No third-party dependencies are required.
+# We interact with Linux system calls (inotify, epoll) directly via extern "C" FFI,
+# enabling offline compilation and a minimal memory footprint.
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
