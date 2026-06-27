@@ -12,6 +12,17 @@
 .terraform.lock.hcl
 crash.log
 
+# Rust
+target/
+**/*.rs.bk
+
+# Go
+aggregator/bin/
+**/__debug_bin*
+
+# Build
+docker.io-cache/
+
 # Temporary and Local Configurations
 .env
 .agents/

@@ -2,6 +2,8 @@
 name = "logmux-daemon"
 version = "0.1.0"
 edition = "2021"
+description = "Low-level log collector daemon with zero-copy file tailing"
+license = "Apache-2.0"
 
 [dependencies]
 # No third-party dependencies are required.

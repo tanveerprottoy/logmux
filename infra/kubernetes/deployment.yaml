@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logmux-aggregator
+  namespace: logmux
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: logmux-aggregator
+  template:
+    metadata:
+      labels:
+        app: logmux-aggregator
+    spec:
+      containers:
+        - name: logmux-aggregator
+          image: ghcr.io/logmux/aggregator:v0.1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: tcp
+          env:
+            - name: PORT
+              value: "8080"
+            - name: WORKERS
+              value: "8"
+            - name: QUEUE
+              value: "10000"
+            - name: RATE
+              value: "10000"
+            - name: BURST
+              value: "50000"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi
+          livenessProbe:
+            tcpSocket:
+              port: tcp
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: tcp
+            initialDelaySeconds: 5
+            periodSeconds: 10

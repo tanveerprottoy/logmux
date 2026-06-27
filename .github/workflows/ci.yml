@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Rust daemon
+        run: make build-daemon-release
+
+      - name: Build Go aggregator
+        run: make build-aggregator
+
+      - name: Run Rust tests
+        run: cd daemon/rust && cargo test
+
+      - name: Run Go tests
+        run: cd aggregator && go test -v ./...
+
+      - name: Lint Rust
+        run: cd daemon/rust && cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Lint Go
+        run: cd aggregator && go vet ./...
+
+      - name: Docker build daemon
+        run: docker build -f daemon/rust/build/Dockerfile -t logmux-daemon:ci .
+
+      - name: Docker build aggregator
+        run: docker build -f aggregator/build/Dockerfile -t logmux-aggregator:ci .
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push daemon
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: daemon/rust/build/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/daemon:latest
+          platforms: linux/amd64,linux/arm64
+
+      - name: Build and push aggregator
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: aggregator/build/Dockerfile
+          push: true
+          tags: ghcr.io/${{ github.repository }}/aggregator:latest
+          platforms: linux/amd64,linux/arm64
